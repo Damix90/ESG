@@ -1,0 +1,51 @@
+import requests
+from bs4 import BeautifulSoup
+import os
+
+# The base URL of the site with PDFs
+base_url = 'https://totalenergies.com/investors/reports'
+
+def get_pdf_links(url):
+    """ Fetch all PDF links from a given URL. """
+    try:
+        with requests.Session() as session:
+            response = session.get(url)
+            response.raise_for_status()  # Raises HTTPError for bad responses
+            soup = BeautifulSoup(response.text, 'html.parser')
+            links = [a['href'] for a in soup.find_all('a', href=True) if a['href'].endswith('.pdf')]
+            return links
+    except requests.RequestException as e:
+        print(f"Failed to fetch PDF links: {e}")
+        return []
+
+def download_pdfs(links, download_folder):
+    """ Download each PDF found in the links list. """
+    with requests.Session() as session:
+        for link in links:
+            pdf_url = link if link.startswith('https') else base_url + link
+            try:
+                response = session.get(pdf_url)
+                response.raise_for_status()  # Ensure the request was successful
+                pdf_name = os.path.basename(pdf_url)
+                safe_pdf_name = sanitize_filename(pdf_name)
+                file_path = os.path.join(download_folder, safe_pdf_name)
+                with open(file_path, 'wb') as f:
+                    f.write(response.content)
+                print(f'Downloaded: {safe_pdf_name}')
+            except requests.RequestException as e:
+                print(f"Failed to download {pdf_url}: {e}")
+
+def sanitize_filename(filename):
+    """ Sanitize the filename to remove unwanted characters or potential security risks. """
+    keepchars = (' ', '.', '_', '-')
+    return "".join(c for c in filename if c.isalnum() or c in keepchars).rstrip()
+
+# Fetch PDF links
+pdf_links = get_pdf_links(base_url)
+
+# Define a folder to store the downloaded PDFs
+download_folder = 'downloaded_pdfs'
+os.makedirs(download_folder, exist_ok=True)
+
+# Download the PDFshttps://totalenergies.com/investors/reports/system/files/documents/2024-03/totalenergies_universal-registration-document-2023_2023_en_pdf.pdf
+download_pdfs(pdf_links, download_folder)
