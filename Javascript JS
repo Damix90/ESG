@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Link Fetcher</title>
+</head>
+<body>
+    <button id="fetch-pdf">Fetch PDF Links</button>
+    <ul id="pdf-list"></ul>
+
+    <script>
+        document.getElementById('fetch-pdf').addEventListener('click', async () => {
+            const apiUrl = 'https://example.com'; // URL of the site you want to fetch from
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const pdfLinks = doc.querySelectorAll('a[href$=".pdf"]');
+
+                const pdfList = document.getElementById('pdf-list');
+                pdfList.innerHTML = ''; // Clear existing list
+
+                pdfLinks.forEach(link => {
+                    const li = document.createElement('li');
+                    li.textContent = link.href; // Set text as the PDF link
+                    pdfList.appendChild(li); // Add to the list in the HTML
+                });
+            } catch (error) {
+                console.error('Failed to fetch PDF links:', error);
+            }
+        });
+    </script>
+</body>
+</html>
