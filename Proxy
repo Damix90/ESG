@@ -1,0 +1,13 @@
+import requests
+from itertools import cycle
+
+# Liste des proxys
+proxy_list = ['http://proxy1.com', 'http://proxy2.com', 'http://proxy3.com']
+proxy_pool = cycle(proxy_list)
+
+url = 'http://example.com'
+
+for _ in range(10):
+    proxy = next(proxy_pool)
+    response = requests.get(url, proxies={'http': proxy, 'https': proxy})
+    print(response.status_code)
